@@ -68,6 +68,7 @@ export const PLATFORM_PATTERNS: Array<{ pattern: RegExp; platform: string }> = [
   { pattern: /github\.com/, platform: "github" },
   { pattern: /zhihu\.com/, platform: "zhihu" },
   { pattern: /bilibili\.com/, platform: "bilibili" },
+  { pattern: /xiaohongshu\.com|xhslink\.com/, platform: "xiaohongshu" },
   { pattern: /twitter\.com|x\.com/, platform: "twitter" },
   { pattern: /medium\.com/, platform: "medium" },
   { pattern: /reddit\.com/, platform: "reddit" },

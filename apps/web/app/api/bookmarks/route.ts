@@ -44,6 +44,7 @@ export async function GET(request: Request) {
         folderId: item.folderId,
         folderName: item.folderName,
         folderEmoji: item.folderEmoji,
+        platform: item.platform,
       })),
       total: result.total,
       hasMore: result.hasMore,

@@ -1,4 +1,4 @@
-import { and, cosineDistance, desc, eq, gt, ilike, inArray, or, sql, type SQL } from "drizzle-orm"
+import { and, cosineDistance, desc, eq, gt, ilike, inArray, or, type SQL, sql } from "drizzle-orm"
 import { db } from "@/db/client"
 import { bookmark } from "@/db/schema/bookmark"
 import { embedding } from "@/db/schema/embedding"
@@ -30,6 +30,7 @@ type BookmarkLookupRow = {
   folderId: string | null
   folderName: string | null
   folderEmoji: string | null
+  platform: string | null
 }
 
 export type SearchResultItem = {
@@ -44,6 +45,7 @@ export type SearchResultItem = {
   folderId: string | null
   folderName: string | null
   folderEmoji: string | null
+  platform: string | null
   score: number
   matchReasons: SearchMatchReason[]
 }
@@ -363,6 +365,7 @@ async function getBookmarkDetailsByIds({
       folderId: bookmark.folderId,
       folderName: folder.name,
       folderEmoji: folder.emoji,
+      platform: bookmark.platform,
     })
     .from(bookmark)
     .leftJoin(folder, eq(bookmark.folderId, folder.id))

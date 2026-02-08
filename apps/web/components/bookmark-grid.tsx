@@ -4,6 +4,7 @@ import { FileText, Grid3X3, Image, LayoutList, Link2, Loader2, Package, Video } 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { BookmarkCard, type BookmarkItem } from "@/components/bookmark-card"
+import { hasPlatformIcon, PlatformIcon } from "@/components/icons/platform-icons"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -212,8 +213,14 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
           <span>{item.folderName}</span>
         </span>
       )}
-      {domain && (
-        <span className="hidden shrink-0 text-muted-foreground text-xs sm:inline">{domain}</span>
+      {hasPlatformIcon(item.platform) ? (
+        <span className="hidden shrink-0 sm:inline">
+          <PlatformIcon platform={item.platform!} />
+        </span>
+      ) : (
+        domain && (
+          <span className="hidden shrink-0 text-muted-foreground text-xs sm:inline">{domain}</span>
+        )
       )}
       <span className="shrink-0 text-muted-foreground text-xs">
         {new Date(item.createdAt).toLocaleDateString("zh-CN")}

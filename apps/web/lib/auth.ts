@@ -5,6 +5,7 @@ import { db } from "@/db/client"
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  trustedOrigins: ["chrome-extension://*"],
   database: drizzleAdapter(db, {
     provider: "pg",
   }),

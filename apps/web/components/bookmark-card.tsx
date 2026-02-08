@@ -2,6 +2,7 @@
 
 import { ExternalLink, FileText, Heart, Image, Link2, MoreHorizontal, Video } from "lucide-react"
 import Link from "next/link"
+import { hasPlatformIcon, PlatformIcon } from "@/components/icons/platform-icons"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ export interface BookmarkItem {
   folderId: string | null
   folderName: string | null
   folderEmoji: string | null
+  platform: string | null
 }
 
 const typeIcons: Record<string, typeof Link2> = {
@@ -151,12 +153,16 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
               <span className="truncate">{item.folderName}</span>
             </span>
           )}
-          {item.folderName && domain && <span>·</span>}
-          {domain && (
-            <span className="flex items-center gap-1 truncate">
-              <Link2 className="size-3 shrink-0" />
-              <span className="truncate">{domain}</span>
-            </span>
+          {item.folderName && (hasPlatformIcon(item.platform) || domain) && <span>·</span>}
+          {hasPlatformIcon(item.platform) ? (
+            <PlatformIcon platform={item.platform!} />
+          ) : (
+            domain && (
+              <span className="flex items-center gap-1 truncate">
+                <Link2 className="size-3 shrink-0" />
+                <span className="truncate">{domain}</span>
+              </span>
+            )
           )}
         </div>
 

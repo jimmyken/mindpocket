@@ -49,6 +49,7 @@ export async function getBookmarksByUserId({
         folderId: bookmark.folderId,
         folderName: folder.name,
         folderEmoji: folder.emoji,
+        platform: bookmark.platform,
       })
       .from(bookmark)
       .leftJoin(folder, eq(bookmark.folderId, folder.id))

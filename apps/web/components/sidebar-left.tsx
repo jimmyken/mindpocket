@@ -371,8 +371,8 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
                     folder={f}
                     isActive={pathname === `/folders/${f.id}`}
                     key={f.id}
-                    onDeleteBookmark={handleDeleteBookmark}
                     onDelete={() => handleDeleteFolder(f.id)}
+                    onDeleteBookmark={handleDeleteBookmark}
                     t={t}
                   />
                 ))}
