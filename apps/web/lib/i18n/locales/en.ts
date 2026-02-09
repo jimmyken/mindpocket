@@ -100,5 +100,9 @@ export const en: TranslationDict = {
     submitSuccess: "Added to import queue",
     submitFailed: "Failed to submit",
     batchSuccess: "Batch added to import queue",
+    folderLabel: "Folder (optional)",
+    folderPlaceholder: "Select folder",
+    titleLabel: "Title (optional)",
+    titlePlaceholder: "Auto-extract",
   },
 } as const

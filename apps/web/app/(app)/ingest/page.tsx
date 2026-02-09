@@ -24,6 +24,14 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -67,11 +75,18 @@ function getSourceLabel(item: HistoryItem, t: ReturnType<typeof useT>) {
   return t.ingest.sourceUnknown
 }
 
+interface FolderInfo {
+  id: string
+  name: string
+  emoji: string
+}
+
 export default function IngestPage() {
   const t = useT()
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
+  const [folders, setFolders] = useState<FolderInfo[]>([])
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchHistory = useCallback(async (filter: StatusFilter) => {
@@ -95,6 +110,19 @@ export default function IngestPage() {
   useEffect(() => {
     fetchHistory(statusFilter)
   }, [fetchHistory, statusFilter])
+
+  useEffect(() => {
+    fetch("/api/folders")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.folders) {
+          setFolders(data.folders)
+        }
+      })
+      .catch(() => {
+        // silently fail
+      })
+  }, [])
 
   // 轮询：当有 pending/processing 状态时每 3 秒刷新
   useEffect(() => {
@@ -136,7 +164,7 @@ export default function IngestPage() {
         </div>
       </header>
       <div className="flex min-w-0 flex-1 flex-col gap-6 p-4">
-        <IngestForm onSuccess={handleIngestSuccess} t={t} />
+        <IngestForm folders={folders} onSuccess={handleIngestSuccess} t={t} />
         <Separator />
         <IngestHistory
           history={history}
@@ -150,7 +178,15 @@ export default function IngestPage() {
   )
 }
 
-function IngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<typeof useT> }) {
+function IngestForm({
+  folders,
+  onSuccess,
+  t,
+}: {
+  folders: FolderInfo[]
+  onSuccess: () => void
+  t: ReturnType<typeof useT>
+}) {
   return (
     <div>
       <Tabs defaultValue="url">
@@ -169,21 +205,31 @@ function IngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<typ
           </TabsTrigger>
         </TabsList>
         <TabsContent value="url">
-          <UrlIngestForm onSuccess={onSuccess} t={t} />
+          <UrlIngestForm folders={folders} onSuccess={onSuccess} t={t} />
         </TabsContent>
         <TabsContent value="file">
-          <FileIngestForm onSuccess={onSuccess} t={t} />
+          <FileIngestForm folders={folders} onSuccess={onSuccess} t={t} />
         </TabsContent>
         <TabsContent value="batch">
-          <BatchIngestForm onSuccess={onSuccess} t={t} />
+          <BatchIngestForm folders={folders} onSuccess={onSuccess} t={t} />
         </TabsContent>
       </Tabs>
     </div>
   )
 }
 
-function UrlIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<typeof useT> }) {
+function UrlIngestForm({
+  folders,
+  onSuccess,
+  t,
+}: {
+  folders: FolderInfo[]
+  onSuccess: () => void
+  t: ReturnType<typeof useT>
+}) {
   const [url, setUrl] = useState("")
+  const [folderId, setFolderId] = useState("")
+  const [title, setTitle] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -198,11 +244,16 @@ function UrlIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<
       const res = await fetch("/api/ingest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmed }),
+        body: JSON.stringify({
+          url: trimmed,
+          folderId: folderId || undefined,
+          title: title.trim() || undefined,
+        }),
       })
       if (res.ok) {
         toast.success(t.ingest.submitSuccess)
         setUrl("")
+        setTitle("")
         onSuccess()
       } else {
         toast.error(t.ingest.submitFailed)
@@ -215,39 +266,79 @@ function UrlIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<
   }
 
   return (
-    <form className="mt-4 flex gap-2" onSubmit={handleSubmit}>
-      <Input
-        className="flex-1"
+    <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+      <div className="flex gap-2">
+        <Input
+          className="flex-1"
+          disabled={submitting}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder={t.ingest.urlPlaceholder}
+          type="url"
+          value={url}
+        />
+        <Button disabled={submitting || !url.trim()} type="submit">
+          {submitting ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+          {submitting ? t.ingest.submitting : t.ingest.urlSubmit}
+        </Button>
+      </div>
+      <FolderSelect
         disabled={submitting}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder={t.ingest.urlPlaceholder}
-        type="url"
-        value={url}
+        folderId={folderId}
+        folders={folders}
+        onFolderChange={setFolderId}
+        t={t}
       />
-      <Button disabled={submitting || !url.trim()} type="submit">
-        {submitting ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-        {submitting ? t.ingest.submitting : t.ingest.urlSubmit}
-      </Button>
+      <div className="space-y-2">
+        <Label>{t.ingest.titleLabel}</Label>
+        <Input
+          disabled={submitting}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t.ingest.titlePlaceholder}
+          value={title}
+        />
+      </div>
     </form>
   )
 }
 
-function FileIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<typeof useT> }) {
+function FileIngestForm({
+  folders,
+  onSuccess,
+  t,
+}: {
+  folders: FolderInfo[]
+  onSuccess: () => void
+  t: ReturnType<typeof useT>
+}) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [folderId, setFolderId] = useState("")
+  const [title, setTitle] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = async (file: File) => {
+  const handleSubmit = async () => {
+    if (!selectedFile) {
+      return
+    }
     setSubmitting(true)
     try {
       const formData = new FormData()
-      formData.append("file", file)
+      formData.append("file", selectedFile)
+      if (folderId) {
+        formData.append("folderId", folderId)
+      }
+      if (title.trim()) {
+        formData.append("title", title.trim())
+      }
       const res = await fetch("/api/ingest", {
         method: "POST",
         body: formData,
       })
       if (res.ok) {
         toast.success(t.ingest.submitSuccess)
+        setSelectedFile(null)
+        setTitle("")
         onSuccess()
       } else {
         toast.error(t.ingest.submitFailed)
@@ -260,56 +351,92 @@ function FileIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType
   }
 
   return (
-    <div
-      className={`mt-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
-        dragOver ? "border-primary bg-primary/5" : "border-muted-foreground/25"
-      }`}
-      onClick={() => inputRef.current?.click()}
-      onDragLeave={() => setDragOver(false)}
-      onDragOver={(e) => {
-        e.preventDefault()
-        setDragOver(true)
-      }}
-      onDrop={(e) => {
-        e.preventDefault()
-        setDragOver(false)
-        const file = e.dataTransfer.files[0]
-        if (file) {
-          handleFile(file)
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          inputRef.current?.click()
-        }
-      }}
-      role="button"
-      tabIndex={0}
-    >
-      <input
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
+    <div className="mt-4 space-y-4">
+      <div
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
+          dragOver ? "border-primary bg-primary/5" : "border-muted-foreground/25"
+        }`}
+        onClick={() => !submitting && inputRef.current?.click()}
+        onDragLeave={() => setDragOver(false)}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragOver(true)
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDragOver(false)
+          const file = e.dataTransfer.files[0]
           if (file) {
-            handleFile(file)
+            setSelectedFile(file)
           }
         }}
-        ref={inputRef}
-        type="file"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            inputRef.current?.click()
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        <input
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) {
+              setSelectedFile(file)
+            }
+          }}
+          ref={inputRef}
+          type="file"
+        />
+        {selectedFile ? (
+          <>
+            <FileUp className="size-8 text-primary" />
+            <p className="mt-2 font-medium text-sm">{selectedFile.name}</p>
+          </>
+        ) : (
+          <>
+            <FileUp className="size-8 text-muted-foreground" />
+            <p className="mt-2 font-medium text-sm">{t.ingest.fileDragHint}</p>
+            <p className="mt-1 text-muted-foreground text-xs">{t.ingest.fileSupported}</p>
+          </>
+        )}
+      </div>
+      <FolderSelect
+        disabled={submitting}
+        folderId={folderId}
+        folders={folders}
+        onFolderChange={setFolderId}
+        t={t}
       />
-      {submitting ? (
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
-      ) : (
-        <FileUp className="size-8 text-muted-foreground" />
-      )}
-      <p className="mt-2 font-medium text-sm">{t.ingest.fileDragHint}</p>
-      <p className="mt-1 text-muted-foreground text-xs">{t.ingest.fileSupported}</p>
+      <div className="space-y-2">
+        <Label>{t.ingest.titleLabel}</Label>
+        <Input
+          disabled={submitting}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t.ingest.titlePlaceholder}
+          value={title}
+        />
+      </div>
+      <Button className="w-full" disabled={!selectedFile || submitting} onClick={handleSubmit}>
+        {submitting ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+        {submitting ? t.ingest.submitting : t.ingest.urlSubmit}
+      </Button>
     </div>
   )
 }
 
-function BatchIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnType<typeof useT> }) {
+function BatchIngestForm({
+  folders,
+  onSuccess,
+  t,
+}: {
+  folders: FolderInfo[]
+  onSuccess: () => void
+  t: ReturnType<typeof useT>
+}) {
   const [text, setText] = useState("")
+  const [folderId, setFolderId] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -329,7 +456,7 @@ function BatchIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnTyp
           fetch("/api/ingest", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ url, folderId: folderId || undefined }),
           })
         )
       )
@@ -345,13 +472,20 @@ function BatchIngestForm({ onSuccess, t }: { onSuccess: () => void; t: ReturnTyp
   }
 
   return (
-    <form className="mt-4 flex flex-col gap-3" onSubmit={handleSubmit}>
+    <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
       <Textarea
         className="min-h-[120px]"
         disabled={submitting}
         onChange={(e) => setText(e.target.value)}
         placeholder={t.ingest.batchPlaceholder}
         value={text}
+      />
+      <FolderSelect
+        disabled={submitting}
+        folderId={folderId}
+        folders={folders}
+        onFolderChange={setFolderId}
+        t={t}
       />
       <Button className="self-end" disabled={submitting || !text.trim()} type="submit">
         {submitting ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
@@ -501,6 +635,42 @@ function HistoryRow({ item, t }: { item: HistoryItem; t: ReturnType<typeof useT>
           {new Date(item.createdAt).toLocaleString()}
         </span>
       </div>
+    </div>
+  )
+}
+
+function FolderSelect({
+  folders,
+  folderId,
+  onFolderChange,
+  disabled,
+  t,
+}: {
+  folders: FolderInfo[]
+  folderId: string
+  onFolderChange: (v: string) => void
+  disabled: boolean
+  t: ReturnType<typeof useT>
+}) {
+  if (folders.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label>{t.ingest.folderLabel}</Label>
+      <Select disabled={disabled} onValueChange={onFolderChange} value={folderId}>
+        <SelectTrigger>
+          <SelectValue placeholder={t.ingest.folderPlaceholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {folders.map((f) => (
+            <SelectItem key={f.id} value={f.id}>
+              {f.emoji} {f.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

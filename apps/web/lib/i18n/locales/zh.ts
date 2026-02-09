@@ -98,6 +98,10 @@ export const zh = {
     submitSuccess: "已加入导入队列",
     submitFailed: "提交失败",
     batchSuccess: "已批量加入导入队列",
+    folderLabel: "文件夹（可选）",
+    folderPlaceholder: "选择文件夹",
+    titleLabel: "标题（可选）",
+    titlePlaceholder: "自动提取",
   },
 } as const
 
