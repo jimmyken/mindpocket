@@ -1,13 +1,15 @@
 import { Ionicons } from "@expo/vector-icons"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Dimensions, Pressable, Text, View } from "react-native"
 import Animated, {
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import type { HistorySection } from "@/lib/chat-api"
 import { HistoryList } from "./history-list"
 
 const SCREEN_WIDTH = Dimensions.get("window").width
@@ -15,16 +17,36 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.8
 
 interface HistoryDrawerProps {
   visible: boolean
+  loading: boolean
+  sections: HistorySection[]
+  error?: string
+  onDelete: (chatId: string) => void
   onClose: () => void
 }
 
-export function HistoryDrawer({ visible, onClose }: HistoryDrawerProps) {
+export function HistoryDrawer({
+  visible,
+  loading,
+  sections,
+  error,
+  onDelete,
+  onClose,
+}: HistoryDrawerProps) {
   const insets = useSafeAreaInsets()
   const translateX = useSharedValue(-DRAWER_WIDTH)
+  const [mounted, setMounted] = useState(visible)
 
   useEffect(() => {
-    translateX.value = withTiming(visible ? 0 : -DRAWER_WIDTH, {
-      duration: 300,
+    if (visible) {
+      setMounted(true)
+      translateX.value = withTiming(0, { duration: 300 })
+      return
+    }
+
+    translateX.value = withTiming(-DRAWER_WIDTH, { duration: 300 }, (finished) => {
+      if (finished) {
+        runOnJS(setMounted)(false)
+      }
     })
   }, [visible, translateX])
 
@@ -34,17 +56,20 @@ export function HistoryDrawer({ visible, onClose }: HistoryDrawerProps) {
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: interpolate(translateX.value, [-DRAWER_WIDTH, 0], [0, 0.5]),
-    pointerEvents: visible ? ("auto" as const) : ("none" as const),
   }))
 
-  if (!visible && translateX.value === -DRAWER_WIDTH) {
+  if (!mounted) {
     return null
   }
 
   return (
     <View className="absolute inset-0" style={{ zIndex: 100 }}>
       {/* Backdrop */}
-      <Animated.View className="absolute inset-0 bg-black" style={backdropStyle}>
+      <Animated.View
+        className="absolute inset-0 bg-black"
+        pointerEvents={visible ? "auto" : "none"}
+        style={backdropStyle}
+      >
         <Pressable className="flex-1" onPress={onClose} />
       </Animated.View>
 
@@ -65,7 +90,13 @@ export function HistoryDrawer({ visible, onClose }: HistoryDrawerProps) {
         </View>
 
         {/* History List */}
-        <HistoryList onItemPress={onClose} />
+        <HistoryList
+          error={error}
+          loading={loading}
+          onDelete={onDelete}
+          onItemPress={onClose}
+          sections={sections}
+        />
       </Animated.View>
     </View>
   )

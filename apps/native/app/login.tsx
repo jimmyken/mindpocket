@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -16,9 +16,16 @@ import { authClient } from "@/lib/auth-client"
 export default function LoginScreen() {
   const insets = useSafeAreaInsets()
   const router = useRouter()
+  const { data: session } = authClient.useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (session?.user) {
+      router.replace("/(tabs)")
+    }
+  }, [session, router])
 
   const handleLogin = async () => {
     if (!(email.trim() && password.trim())) {

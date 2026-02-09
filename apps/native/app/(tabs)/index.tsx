@@ -1,12 +1,18 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import { useState } from "react"
-import { Pressable, ScrollView, Text, View } from "react-native"
+import { useEffect, useState } from "react"
+import { Alert, Pressable, ScrollView, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { HistoryDrawer } from "@/components/drawer/history-drawer"
 import { SearchInput } from "@/components/home/search-input"
 import { Toolbar } from "@/components/home/toolbar"
 import { TrendingCard } from "@/components/home/trending-card"
+import {
+  ChatApiError,
+  deleteChat,
+  fetchHistory,
+  type HistorySection,
+} from "@/lib/chat-api"
 import { getGreeting } from "@/lib/utils"
 
 export default function HomeScreen() {
@@ -14,6 +20,9 @@ export default function HomeScreen() {
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedModel, setSelectedModel] = useState("openai/gpt-4o-mini")
+  const [historySections, setHistorySections] = useState<HistorySection[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyError, setHistoryError] = useState<string>()
   const greeting = getGreeting()
 
   const handleSubmit = (text: string) => {
@@ -25,6 +34,66 @@ export default function HomeScreen() {
       pathname: "/chat/[id]",
       params: { id: chatId, initialMessage: text, selectedModel },
     })
+  }
+
+  useEffect(() => {
+    if (!drawerOpen) {
+      return
+    }
+
+    let cancelled = false
+
+    async function loadHistory() {
+      setHistoryLoading(true)
+      setHistoryError(undefined)
+
+      try {
+        const sections = await fetchHistory(20)
+        if (cancelled) {
+          return
+        }
+        setHistorySections(sections)
+      } catch (error) {
+        if (cancelled) {
+          return
+        }
+        if (error instanceof ChatApiError && error.status === 401) {
+          router.replace("/login")
+          return
+        }
+        setHistoryError("历史记录加载失败，请稍后重试")
+      } finally {
+        if (!cancelled) {
+          setHistoryLoading(false)
+        }
+      }
+    }
+
+    loadHistory()
+
+    return () => {
+      cancelled = true
+    }
+  }, [drawerOpen, router])
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await deleteChat(chatId)
+      setHistorySections((prev) =>
+        prev
+          .map((section) => ({
+            ...section,
+            data: section.data.filter((item) => item.id !== chatId),
+          }))
+          .filter((section) => section.data.length > 0)
+      )
+    } catch (error) {
+      if (error instanceof ChatApiError && error.status === 401) {
+        router.replace("/login")
+        return
+      }
+      Alert.alert("删除失败", "请稍后重试")
+    }
   }
 
   return (
@@ -58,7 +127,14 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* Drawer */}
-      <HistoryDrawer onClose={() => setDrawerOpen(false)} visible={drawerOpen} />
+      <HistoryDrawer
+        error={historyError}
+        loading={historyLoading}
+        onClose={() => setDrawerOpen(false)}
+        onDelete={handleDeleteChat}
+        sections={historySections}
+        visible={drawerOpen}
+      />
     </View>
   )
 }

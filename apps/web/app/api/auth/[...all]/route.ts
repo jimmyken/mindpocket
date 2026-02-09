@@ -1,4 +1,19 @@
 import { toNextJsHandler } from "better-auth/next-js"
 import { auth } from "@/lib/auth"
+import { corsPreflight, withCors } from "@/lib/cors"
 
-export const { GET, POST } = toNextJsHandler(auth)
+const authHandler = toNextJsHandler(auth)
+
+export async function OPTIONS(req: Request) {
+  return corsPreflight(req)
+}
+
+export async function GET(req: Request) {
+  const response = await authHandler.GET(req)
+  return withCors(req, response)
+}
+
+export async function POST(req: Request) {
+  const response = await authHandler.POST(req)
+  return withCors(req, response)
+}

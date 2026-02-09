@@ -1,25 +1,38 @@
 import { useChat } from "@ai-sdk/react"
-import { useLocalSearchParams } from "expo-router"
+import type { UIMessage } from "ai"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import { useEffect, useRef, useState } from "react"
-import { Alert, KeyboardAvoidingView, Platform, View } from "react-native"
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ChatInputBar } from "@/components/chat/chat-input-bar"
 import { ChatMessages } from "@/components/chat/chat-messages"
+import { ChatApiError, fetchChatDetail } from "@/lib/chat-api"
 import { createChatTransport } from "@/lib/chat"
 
-export default function ChatScreen() {
-  const { id, initialMessage, selectedModel } = useLocalSearchParams<{
-    id: string
-    initialMessage?: string
-    selectedModel?: string
-  }>()
+function ChatSession({
+  id,
+  initialMessages,
+  initialMessage,
+  selectedModel,
+}: {
+  id: string
+  initialMessages: UIMessage[]
+  initialMessage?: string
+  selectedModel?: string
+}) {
+  const router = useRouter()
   const insets = useSafeAreaInsets()
   const [inputText, setInputText] = useState("")
   const hasSentInitial = useRef(false)
 
   const { messages, status, error, sendMessage, stop } = useChat({
     id,
-    transport: createChatTransport(),
+    messages: initialMessages,
+    transport: createChatTransport({
+      onUnauthorized: () => {
+        router.replace("/login")
+      },
+    }),
     experimental_throttle: 50,
     chatRequestBody: {
       selectedChatModel: selectedModel || "openai/gpt-4o-mini",
@@ -30,11 +43,11 @@ export default function ChatScreen() {
   })
 
   useEffect(() => {
-    if (initialMessage && !hasSentInitial.current) {
+    if (initialMessage && !hasSentInitial.current && initialMessages.length === 0) {
       hasSentInitial.current = true
       sendMessage({ text: initialMessage })
     }
-  }, [initialMessage, sendMessage])
+  }, [initialMessage, sendMessage, initialMessages.length])
 
   const isStreaming = status === "streaming" || status === "submitted"
 
@@ -63,5 +76,91 @@ export default function ChatScreen() {
         />
       </View>
     </KeyboardAvoidingView>
+  )
+}
+
+export default function ChatScreen() {
+  const router = useRouter()
+  const { id, initialMessage, selectedModel } = useLocalSearchParams<{
+    id: string
+    initialMessage?: string
+    selectedModel?: string
+  }>()
+  const [loadingInitialMessages, setLoadingInitialMessages] = useState(true)
+  const [initialMessages, setInitialMessages] = useState<UIMessage[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadMessages() {
+      if (!id) {
+        setLoadingInitialMessages(false)
+        return
+      }
+
+      if (initialMessage) {
+        setInitialMessages([])
+        setLoadingInitialMessages(false)
+        return
+      }
+
+      try {
+        const detail = await fetchChatDetail(id)
+        if (!cancelled) {
+          setInitialMessages(detail.messages)
+        }
+      } catch (error) {
+        if (cancelled) {
+          return
+        }
+
+        if (error instanceof ChatApiError && error.status === 401) {
+          router.replace("/login")
+          return
+        }
+
+        if (error instanceof ChatApiError && error.status === 404) {
+          Alert.alert("对话不存在", "该对话已被删除或无权限访问", [
+            { text: "确定", onPress: () => router.replace("/(tabs)") },
+          ])
+          return
+        }
+
+        Alert.alert("加载失败", "无法获取历史消息，请稍后重试", [
+          { text: "返回", onPress: () => router.replace("/(tabs)") },
+        ])
+      } finally {
+        if (!cancelled) {
+          setLoadingInitialMessages(false)
+        }
+      }
+    }
+
+    loadMessages()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id, initialMessage, router])
+
+  if (loadingInitialMessages) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator color="#737373" size="small" />
+      </View>
+    )
+  }
+
+  if (!id) {
+    return null
+  }
+
+  return (
+    <ChatSession
+      id={id}
+      initialMessage={initialMessage}
+      initialMessages={initialMessages}
+      selectedModel={selectedModel}
+    />
   )
 }

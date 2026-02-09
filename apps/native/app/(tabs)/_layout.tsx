@@ -1,7 +1,23 @@
 import { Ionicons } from "@expo/vector-icons"
-import { Tabs } from "expo-router"
+import { Redirect, Tabs } from "expo-router"
+import { ActivityIndicator, View } from "react-native"
+import { authClient } from "@/lib/auth-client"
 
 export default function TabLayout() {
+  const { data: session, isPending } = authClient.useSession()
+
+  if (isPending) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator color="#737373" size="small" />
+      </View>
+    )
+  }
+
+  if (!session?.user) {
+    return <Redirect href="/login" />
+  }
+
   return (
     <Tabs
       screenOptions={{

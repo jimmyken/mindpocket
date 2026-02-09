@@ -17,6 +17,7 @@ import {
   createStreamId,
   deleteChatById,
   getChatById,
+  getMessagesByChatId,
   saveChat,
   saveMessages,
   updateChatTitle,
@@ -25,6 +26,7 @@ import { findRelevantContent } from "@/lib/ai/embedding"
 import { generateTitleFromUserMessage, systemPrompt } from "@/lib/ai/prompts"
 import { getChatModel } from "@/lib/ai/provider"
 import { auth } from "@/lib/auth"
+import { corsPreflight, withCors } from "@/lib/cors"
 
 export const maxDuration = 60
 
@@ -36,10 +38,52 @@ function getStreamContext() {
   }
 }
 
+export async function OPTIONS(req: Request) {
+  return corsPreflight(req)
+}
+
+export async function GET(req: Request) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) {
+    return withCors(req, new Response("Unauthorized", { status: 401 }))
+  }
+
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+
+  if (!id) {
+    return withCors(req, new Response("Missing id", { status: 400 }))
+  }
+
+  const chat = await getChatById({ id })
+  if (!chat || chat.userId !== session.user.id) {
+    return withCors(req, new Response("Not found", { status: 404 }))
+  }
+
+  const dbMessages = await getMessagesByChatId({ id })
+
+  return withCors(
+    req,
+    Response.json({
+      chat: {
+        id: chat.id,
+        title: chat.title,
+        createdAt: chat.createdAt.toISOString(),
+      },
+      messages: dbMessages.map((msg) => ({
+        id: msg.id,
+        role: msg.role,
+        parts: msg.parts,
+        createdAt: msg.createdAt.toISOString(),
+      })),
+    })
+  )
+}
+
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) {
-    return new Response("Unauthorized", { status: 401 })
+    return withCors(req, new Response("Unauthorized", { status: 401 }))
   }
 
   const {
@@ -58,7 +102,7 @@ export async function POST(req: Request) {
 
   const userMessage = messages.at(-1)
   if (!userMessage || userMessage.role !== "user") {
-    return new Response("Invalid message", { status: 400 })
+    return withCors(req, new Response("Invalid message", { status: 400 }))
   }
 
   const existingChat = await getChatById({ id })
@@ -139,39 +183,42 @@ export async function POST(req: Request) {
     },
   })
 
-  return createUIMessageStreamResponse({
-    stream,
-    async consumeSseStream({ stream: sseStream }) {
-      if (!process.env.REDIS_URL) {
-        return
-      }
-      try {
-        const streamContext = getStreamContext()
-        if (streamContext) {
-          const streamId = generateId()
-          await createStreamId({ streamId, chatId: id })
-          await streamContext.createNewResumableStream(streamId, () => sseStream)
+  return withCors(
+    req,
+    createUIMessageStreamResponse({
+      stream,
+      async consumeSseStream({ stream: sseStream }) {
+        if (!process.env.REDIS_URL) {
+          return
         }
-      } catch {
-        // ignore redis errors
-      }
-    },
-  })
+        try {
+          const streamContext = getStreamContext()
+          if (streamContext) {
+            const streamId = generateId()
+            await createStreamId({ streamId, chatId: id })
+            await streamContext.createNewResumableStream(streamId, () => sseStream)
+          }
+        } catch {
+          // ignore redis errors
+        }
+      },
+    })
+  )
 }
 
 export async function DELETE(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) {
-    return new Response("Unauthorized", { status: 401 })
+    return withCors(req, new Response("Unauthorized", { status: 401 }))
   }
 
   const { id }: { id: string } = await req.json()
 
   const chat = await getChatById({ id })
   if (!chat || chat.userId !== session.user.id) {
-    return new Response("Not found", { status: 404 })
+    return withCors(req, new Response("Not found", { status: 404 }))
   }
 
   await deleteChatById({ id })
-  return new Response("OK", { status: 200 })
+  return withCors(req, new Response("OK", { status: 200 }))
 }

@@ -1,11 +1,16 @@
 import { headers } from "next/headers"
 import { getChatsByUserId } from "@/db/queries/chat"
 import { auth } from "@/lib/auth"
+import { corsPreflight, withCors } from "@/lib/cors"
+
+export async function OPTIONS(req: Request) {
+  return corsPreflight(req)
+}
 
 export async function GET(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) {
-    return new Response("Unauthorized", { status: 401 })
+    return withCors(req, new Response("Unauthorized", { status: 401 }))
   }
 
   const { searchParams } = new URL(req.url)
@@ -21,5 +26,5 @@ export async function GET(req: Request) {
   const hasMore = chats.length > limit
   const result = hasMore ? chats.slice(0, limit) : chats
 
-  return Response.json({ chats: result, hasMore })
+  return withCors(req, Response.json({ chats: result, hasMore }))
 }
