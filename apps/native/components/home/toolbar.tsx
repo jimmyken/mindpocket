@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons"
-import { Pressable, ScrollView, Text, View } from "react-native"
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { chatModels } from "@/lib/mock-data"
 
 interface ToolbarProps {
@@ -11,25 +11,16 @@ export function Toolbar({ selectedModel, onModelChange: _onModelChange }: Toolba
   const currentModel = chatModels.find((m) => m.id === selectedModel)
 
   return (
-    <View className="mx-4 mb-4">
+    <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={{ gap: 8 }}
+        contentContainerStyle={styles.scrollContent}
         horizontal
         showsHorizontalScrollIndicator={false}
       >
-        {/* 对话模式 */}
         <ToolbarChip icon="chatbubble-outline" label="对话" />
-
-        {/* 模型选择 */}
         <ToolbarChip icon="globe-outline" label={currentModel?.name ?? "GPT-4o Mini"} />
-
-        {/* @提及 */}
         <ToolbarIconButton icon="at" />
-
-        {/* 语音 */}
         <ToolbarIconButton icon="wifi-outline" />
-
-        {/* 附件 */}
         <ToolbarIconButton icon="add" />
       </ScrollView>
     </View>
@@ -38,9 +29,9 @@ export function Toolbar({ selectedModel, onModelChange: _onModelChange }: Toolba
 
 function ToolbarChip({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
   return (
-    <Pressable className="flex-row items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1.5">
+    <Pressable style={styles.chip}>
       <Ionicons color="#666" name={icon} size={16} />
-      <Text className="text-sm text-neutral-600">{label}</Text>
+      <Text style={styles.chipText}>{label}</Text>
       <Ionicons color="#999" name="chevron-down" size={12} />
     </Pressable>
   )
@@ -48,8 +39,43 @@ function ToolbarChip({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; la
 
 function ToolbarIconButton({ icon }: { icon: keyof typeof Ionicons.glyphMap }) {
   return (
-    <Pressable className="items-center justify-center rounded-full border border-neutral-200 bg-white px-2.5 py-1.5">
+    <Pressable style={styles.iconButton}>
       <Ionicons color="#666" name={icon} size={18} />
     </Pressable>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  scrollContent: {
+    gap: 8,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipText: {
+    fontSize: 14,
+    color: "#525252",
+  },
+  iconButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+})

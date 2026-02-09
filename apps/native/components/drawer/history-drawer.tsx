@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useEffect, useState } from "react"
-import { Dimensions, Pressable, Text, View } from "react-native"
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native"
 import Animated, {
   interpolate,
   runOnJS,
@@ -63,27 +63,20 @@ export function HistoryDrawer({
   }
 
   return (
-    <View className="absolute inset-0" style={{ zIndex: 100 }}>
+    <View style={styles.overlay}>
       {/* Backdrop */}
       <Animated.View
-        className="absolute inset-0 bg-black"
         pointerEvents={visible ? "auto" : "none"}
-        style={backdropStyle}
+        style={[styles.backdrop, backdropStyle]}
       >
-        <Pressable className="flex-1" onPress={onClose} />
+        <Pressable onPress={onClose} style={styles.backdropPress} />
       </Animated.View>
 
       {/* Drawer Panel */}
-      <Animated.View
-        className="absolute bottom-0 left-0 top-0 bg-white"
-        style={[{ width: DRAWER_WIDTH }, drawerStyle]}
-      >
+      <Animated.View style={[styles.drawer, { width: DRAWER_WIDTH }, drawerStyle]}>
         {/* Drawer Header */}
-        <View
-          className="flex-row items-center justify-between border-b border-neutral-100 px-4 pb-3"
-          style={{ paddingTop: insets.top + 12 }}
-        >
-          <Text className="text-lg font-bold text-neutral-800">问答历史</Text>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <Text style={styles.headerTitle}>问答历史</Text>
           <Pressable onPress={onClose}>
             <Ionicons color="#999" name="close" size={22} />
           </Pressable>
@@ -101,3 +94,46 @@ export function HistoryDrawer({
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 100,
+  },
+  backdrop: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "#000",
+  },
+  backdropPress: {
+    flex: 1,
+  },
+  drawer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "#fff",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5f5f5",
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#262626",
+  },
+})

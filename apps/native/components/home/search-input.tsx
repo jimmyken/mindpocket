@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useState } from "react"
-import { Pressable, TextInput, View } from "react-native"
+import { Pressable, StyleSheet, TextInput, View } from "react-native"
 
 interface SearchInputProps {
   onSubmit: (text: string) => void
@@ -17,15 +17,15 @@ export function SearchInput({ onSubmit }: SearchInputProps) {
   }
 
   return (
-    <View className="mx-4 mb-3">
-      <View className="flex-row items-center rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
         <TextInput
-          className="flex-1 text-base text-neutral-800"
           onChangeText={setText}
           onSubmitEditing={handleSubmit}
           placeholder="有问题尽管问"
           placeholderTextColor="#999"
           returnKeyType="send"
+          style={styles.input}
           value={text}
         />
         <Pressable onPress={handleSubmit}>
@@ -35,3 +35,25 @@ export function SearchInput({ onSubmit }: SearchInputProps) {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    backgroundColor: "#fafafa",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#262626",
+  },
+})

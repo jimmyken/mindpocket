@@ -1,18 +1,13 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
-import { Alert, Pressable, ScrollView, Text, View } from "react-native"
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { HistoryDrawer } from "@/components/drawer/history-drawer"
 import { SearchInput } from "@/components/home/search-input"
 import { Toolbar } from "@/components/home/toolbar"
 import { TrendingCard } from "@/components/home/trending-card"
-import {
-  ChatApiError,
-  deleteChat,
-  fetchHistory,
-  type HistorySection,
-} from "@/lib/chat-api"
+import { ChatApiError, deleteChat, fetchHistory, type HistorySection } from "@/lib/chat-api"
 import { getGreeting } from "@/lib/utils"
 
 export default function HomeScreen() {
@@ -97,23 +92,23 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
-      <View className="h-12 flex-row items-center px-4">
+      <View style={styles.header}>
         <Pressable onPress={() => setDrawerOpen(true)}>
           <Ionicons color="#333" name="menu-outline" size={24} />
         </Pressable>
       </View>
 
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        style={styles.scroll}
       >
         {/* Greeting */}
-        <View className="items-center px-4 pb-6 pt-16">
-          <Text className="text-3xl font-bold text-neutral-800">{greeting}</Text>
-          <Text className="mt-2 text-base text-neutral-400">有什么可以帮您的吗？？</Text>
+        <View style={styles.greeting}>
+          <Text style={styles.greetingTitle}>{greeting}</Text>
+          <Text style={styles.greetingSubtitle}>有什么可以帮您的吗？？</Text>
         </View>
 
         {/* Search Input */}
@@ -138,3 +133,38 @@ export default function HomeScreen() {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  header: {
+    height: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  greeting: {
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    paddingTop: 64,
+  },
+  greetingTitle: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#262626",
+  },
+  greetingSubtitle: {
+    marginTop: 8,
+    fontSize: 16,
+    color: "#a3a3a3",
+  },
+})

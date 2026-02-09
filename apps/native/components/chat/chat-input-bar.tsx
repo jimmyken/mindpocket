@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons"
-import { Pressable, TextInput, View } from "react-native"
+import { Pressable, StyleSheet, TextInput, View } from "react-native"
 
 interface ChatInputBarProps {
   value: string
@@ -19,31 +19,26 @@ export function ChatInputBar({
   const isEmpty = !value.trim()
 
   return (
-    <View className="flex-row items-end gap-2 border-t border-neutral-100 bg-white px-4 py-3">
+    <View style={styles.container}>
       <TextInput
-        className="max-h-24 min-h-[36px] flex-1 rounded-2xl bg-neutral-50 px-4 py-2 text-sm text-neutral-800"
         editable={!isStreaming}
         multiline
         onChangeText={onChangeText}
         onSubmitEditing={onSend}
         placeholder={isStreaming ? "AI 正在回复..." : "输入消息..."}
         placeholderTextColor="#999"
+        style={styles.input}
         value={value}
       />
       {isStreaming ? (
-        <Pressable
-          className="items-center justify-center rounded-full bg-red-500 p-2"
-          onPress={onStop}
-        >
+        <Pressable onPress={onStop} style={styles.stopButton}>
           <Ionicons color="#fff" name="stop" size={18} />
         </Pressable>
       ) : (
         <Pressable
-          className={`items-center justify-center rounded-full p-2 ${
-            isEmpty ? "bg-neutral-300" : "bg-neutral-800"
-          }`}
           disabled={isEmpty}
           onPress={onSend}
+          style={[styles.sendButton, isEmpty ? styles.sendButtonDisabled : styles.sendButtonActive]}
         >
           <Ionicons color="#fff" name="arrow-up" size={18} />
         </Pressable>
@@ -51,3 +46,46 @@ export function ChatInputBar({
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f5f5f5",
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  input: {
+    flex: 1,
+    maxHeight: 96,
+    minHeight: 36,
+    borderRadius: 16,
+    backgroundColor: "#fafafa",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: "#262626",
+  },
+  stopButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    backgroundColor: "#ef4444",
+    padding: 8,
+  },
+  sendButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    padding: 8,
+  },
+  sendButtonDisabled: {
+    backgroundColor: "#d4d4d4",
+  },
+  sendButtonActive: {
+    backgroundColor: "#262626",
+  },
+})

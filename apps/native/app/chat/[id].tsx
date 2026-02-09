@@ -2,12 +2,19 @@ import { useChat } from "@ai-sdk/react"
 import type { UIMessage } from "ai"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useEffect, useRef, useState } from "react"
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, View } from "react-native"
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  View,
+} from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ChatInputBar } from "@/components/chat/chat-input-bar"
 import { ChatMessages } from "@/components/chat/chat-messages"
-import { ChatApiError, fetchChatDetail } from "@/lib/chat-api"
 import { createChatTransport } from "@/lib/chat"
+import { ChatApiError, fetchChatDetail } from "@/lib/chat-api"
 
 function ChatSession({
   id,
@@ -62,8 +69,8 @@ function ChatSession({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
       keyboardVerticalOffset={90}
+      style={styles.container}
     >
       <ChatMessages error={error} messages={messages} status={status} />
       <View style={{ paddingBottom: insets.bottom }}>
@@ -145,7 +152,7 @@ export default function ChatScreen() {
 
   if (loadingInitialMessages) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View style={styles.loading}>
         <ActivityIndicator color="#737373" size="small" />
       </View>
     )
@@ -164,3 +171,16 @@ export default function ChatScreen() {
     />
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  loading: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+})

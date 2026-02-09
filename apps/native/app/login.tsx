@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -56,50 +57,96 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      style={styles.container}
     >
-      <View
-        className="flex-1 justify-center px-8"
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-      >
-        <Text className="mb-2 text-center text-3xl font-bold text-neutral-800">MindPocket</Text>
-        <Text className="mb-10 text-center text-base text-neutral-400">登录以继续</Text>
+      <View style={[styles.content, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <Text style={styles.title}>MindPocket</Text>
+        <Text style={styles.subtitle}>登录以继续</Text>
 
-        <Text className="mb-1 text-sm text-neutral-600">邮箱</Text>
+        <Text style={styles.label}>邮箱</Text>
         <TextInput
           autoCapitalize="none"
           autoComplete="email"
-          className="mb-4 rounded-lg border border-neutral-200 px-4 py-3 text-base"
           keyboardType="email-address"
           onChangeText={setEmail}
           placeholder="your@email.com"
+          style={styles.input}
           value={email}
         />
 
-        <Text className="mb-1 text-sm text-neutral-600">密码</Text>
+        <Text style={styles.label}>密码</Text>
         <TextInput
           autoComplete="password"
-          className="mb-6 rounded-lg border border-neutral-200 px-4 py-3 text-base"
           onChangeText={setPassword}
           onSubmitEditing={handleLogin}
           placeholder="输入密码"
           returnKeyType="done"
           secureTextEntry
+          style={[styles.input, styles.inputPassword]}
           value={password}
         />
 
-        <Pressable
-          className="items-center rounded-lg bg-neutral-900 py-3.5"
-          disabled={loading}
-          onPress={handleLogin}
-        >
+        <Pressable disabled={loading} onPress={handleLogin} style={styles.button}>
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-base font-semibold text-white">登录</Text>
+            <Text style={styles.buttonText}>登录</Text>
           )}
         </Pressable>
       </View>
     </KeyboardAvoidingView>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  title: {
+    marginBottom: 8,
+    textAlign: "center",
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#262626",
+  },
+  subtitle: {
+    marginBottom: 40,
+    textAlign: "center",
+    fontSize: 16,
+    color: "#a3a3a3",
+  },
+  label: {
+    marginBottom: 4,
+    fontSize: 14,
+    color: "#525252",
+  },
+  input: {
+    marginBottom: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  inputPassword: {
+    marginBottom: 24,
+  },
+  button: {
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "#171717",
+    paddingVertical: 14,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+})

@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { saveBookmark } from "@/lib/api"
 import { authClient } from "@/lib/auth-client"
-import "../global.css"
 
 function ShareIntentHandler() {
   const router = useRouter()

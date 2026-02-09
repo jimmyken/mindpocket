@@ -1,7 +1,6 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const path = require("node:path")
 const { getDefaultConfig } = require("expo/metro-config")
-const { withNativewind } = require("nativewind/metro")
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname)
@@ -37,4 +36,4 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 }
 
 config.resolver.unstable_enablePackageExports = true
-module.exports = withNativewind(config)
+module.exports = config

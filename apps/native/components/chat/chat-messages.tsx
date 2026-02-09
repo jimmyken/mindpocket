@@ -1,6 +1,6 @@
 import type { ChatStatus, UIMessage } from "ai"
 import { useRef } from "react"
-import { ActivityIndicator, FlatList, Text, View } from "react-native"
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native"
 import { ChatMessageBubble } from "./chat-message-bubble"
 
 interface ChatMessagesProps {
@@ -15,21 +15,20 @@ export function ChatMessages({ messages, status, error }: ChatMessagesProps) {
 
   return (
     <FlatList
-      className="flex-1 px-4"
-      contentContainerStyle={{ paddingVertical: 16 }}
+      contentContainerStyle={styles.content}
       data={messages}
       keyExtractor={(item) => item.id}
-      ListEmptyComponent={<View className="flex-1 items-center justify-center pt-20" />}
+      ListEmptyComponent={<View style={styles.empty} />}
       ListFooterComponent={
         <>
           {isStreaming && messages.at(-1)?.role === "user" && (
-            <View className="mb-3 self-start">
+            <View style={styles.loading}>
               <ActivityIndicator color="#737373" size="small" />
             </View>
           )}
           {error && (
-            <View className="mb-3 self-start rounded-2xl rounded-bl-sm bg-red-50 px-4 py-3">
-              <Text className="text-sm text-red-500">出错了: {error.message}</Text>
+            <View style={styles.errorBubble}>
+              <Text style={styles.errorText}>出错了: {error.message}</Text>
             </View>
           )}
         </>
@@ -39,6 +38,40 @@ export function ChatMessages({ messages, status, error }: ChatMessagesProps) {
       }}
       ref={flatListRef}
       renderItem={({ item }) => <ChatMessageBubble message={item} />}
+      style={styles.list}
     />
   )
 }
+
+const styles = StyleSheet.create({
+  list: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  content: {
+    paddingVertical: 16,
+  },
+  empty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 80,
+  },
+  loading: {
+    marginBottom: 12,
+    alignSelf: "flex-start",
+  },
+  errorBubble: {
+    marginBottom: 12,
+    alignSelf: "flex-start",
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+    backgroundColor: "#fef2f2",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#ef4444",
+  },
+})

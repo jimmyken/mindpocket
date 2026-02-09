@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"
 import { Redirect, Tabs } from "expo-router"
-import { ActivityIndicator, View } from "react-native"
+import { ActivityIndicator, StyleSheet, View } from "react-native"
 import { authClient } from "@/lib/auth-client"
 
 export default function TabLayout() {
@@ -8,7 +8,7 @@ export default function TabLayout() {
 
   if (isPending) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View style={styles.loading}>
         <ActivityIndicator color="#737373" size="small" />
       </View>
     )
@@ -68,3 +68,12 @@ export default function TabLayout() {
     </Tabs>
   )
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+})

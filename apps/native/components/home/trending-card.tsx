@@ -1,16 +1,16 @@
 import { Ionicons } from "@expo/vector-icons"
-import { Pressable, Text, View } from "react-native"
+import { Pressable, StyleSheet, Text, View } from "react-native"
 import { mockTrendingTopics } from "@/lib/mock-data"
 import { formatViewCount } from "@/lib/utils"
 
 export function TrendingCard() {
   return (
-    <View className="mx-4 mt-2 rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+    <View style={styles.card}>
       {/* Header */}
-      <View className="mb-3 flex-row items-center gap-2">
+      <View style={styles.header}>
         <Ionicons color="#f59e0b" name="flash-outline" size={18} />
-        <Text className="text-sm font-medium text-neutral-500">前沿洞察</Text>
-        <View className="flex-1" />
+        <Text style={styles.headerText}>前沿洞察</Text>
+        <View style={styles.spacer} />
         <Pressable>
           <Ionicons color="#ccc" name="close" size={18} />
         </Pressable>
@@ -22,8 +22,8 @@ export function TrendingCard() {
       ))}
 
       {/* Footer */}
-      <Pressable className="mt-3 flex-row items-center justify-center gap-1">
-        <Text className="text-sm text-neutral-400">更多内容</Text>
+      <Pressable style={styles.footer}>
+        <Text style={styles.footerText}>更多内容</Text>
         <Ionicons color="#999" name="chevron-forward" size={14} />
       </Pressable>
     </View>
@@ -34,14 +34,69 @@ function TrendingItem({ index, title, views }: { index: number; title: string; v
   const numberColor = index <= 3 ? "#ef4444" : "#999"
 
   return (
-    <Pressable className="flex-row items-center py-2.5">
-      <Text className="w-6 text-base font-bold" style={{ color: numberColor }}>
-        {index}
-      </Text>
-      <Text className="flex-1 text-sm text-neutral-700" numberOfLines={1}>
+    <Pressable style={styles.item}>
+      <Text style={[styles.itemNumber, { color: numberColor }]}>{index}</Text>
+      <Text numberOfLines={1} style={styles.itemTitle}>
         {title}
       </Text>
-      <Text className="ml-3 text-xs text-neutral-400">{formatViewCount(views)}</Text>
+      <Text style={styles.itemViews}>{formatViewCount(views)}</Text>
     </Pressable>
   )
 }
+
+const styles = StyleSheet.create({
+  card: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f5f5f5",
+    backgroundColor: "#fafafa",
+    padding: 16,
+  },
+  header: {
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  headerText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#737373",
+  },
+  spacer: {
+    flex: 1,
+  },
+  footer: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  footerText: {
+    fontSize: 14,
+    color: "#a3a3a3",
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  itemNumber: {
+    width: 24,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  itemTitle: {
+    flex: 1,
+    fontSize: 14,
+    color: "#404040",
+  },
+  itemViews: {
+    marginLeft: 12,
+    fontSize: 12,
+    color: "#a3a3a3",
+  },
+})
