@@ -2,7 +2,6 @@
 
 import {
   Bookmark,
-  Github,
   Import,
   LayoutDashboard,
   Loader2,
@@ -12,14 +11,19 @@ import {
   Search,
   Sparkles,
   Trash2,
-  Twitter,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import type * as React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-
+import {
+  BilibiliIcon,
+  GithubIcon,
+  QQIcon,
+  TwitterIcon,
+  XiaohongshuIcon,
+} from "@/components/icons/platform-icons"
 import { NavUser } from "@/components/nav-user"
 import { useSearchDialog } from "@/components/search/search-dialog-provider"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -70,8 +74,15 @@ interface UserInfo {
 }
 
 const socialLinks = [
-  { name: "GitHub", icon: Github, url: "https://github.com" },
-  { name: "Twitter", icon: Twitter, url: "https://twitter.com" },
+  { name: "GitHub", icon: GithubIcon, url: "https://github.com/jihe520/mindpocket" },
+  { name: "X", icon: TwitterIcon, url: "https://x.com/EqbymCi" },
+  {
+    name: "小红书",
+    icon: XiaohongshuIcon,
+    url: "https://www.xiaohongshu.com/user/profile/647a0857000000002a037c03",
+  },
+  { name: "哔哩哔哩", icon: BilibiliIcon, url: "https://space.bilibili.com/400340982" },
+  { name: "QQ群", icon: QQIcon, url: "https://qm.qq.com/q/jSXw3cyi8U" },
 ]
 
 export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -438,7 +449,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
         <NavUser user={userInfo} />
 
         {/* 社交媒体链接 */}
-        <div className="flex items-center gap-1 px-2 py-1">
+        <div className="flex items-center justify-between ">
           {socialLinks.map((link) => (
             <a
               className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"

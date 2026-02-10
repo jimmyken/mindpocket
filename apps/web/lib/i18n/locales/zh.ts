@@ -1,6 +1,7 @@
 export const zh = {
   common: {
     settings: "设置",
+    feedback: "反馈",
     logout: "退出登录",
     cancel: "取消",
     save: "保存",

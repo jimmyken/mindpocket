@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
+import { ChevronsUpDown, LogOut, MessageCircleQuestionMark, Settings } from "lucide-react"
 import { useState } from "react"
 
 import { SettingsDialog } from "@/components/settings/settings-dialog"
@@ -82,6 +82,15 @@ export function NavUser({
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() =>
+                  window.open("https://github.com/jihe520/mindpocket/issues", "_blank")
+                }
+              >
+                <MessageCircleQuestionMark />
+                {t.common.feedback}
+              </DropdownMenuItem>
+
               <DropdownMenuItem>
                 <LogOut />
                 {t.common.logout}
