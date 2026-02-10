@@ -29,8 +29,6 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024
 const FILE_EXT_REGEX = /\.[^.]+$/
 
 export async function POST(request: Request) {
-  console.log("[ingest] Received POST request", JSON.stringify(request), null, 2)
-
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -53,6 +51,7 @@ export async function POST(request: Request) {
 
 async function handleJsonIngest(request: Request, userId: string) {
   const body = await request.json()
+  console.log("[ingest] body:", JSON.stringify(body))
 
   if (body.html) {
     const parsed = ingestExtensionSchema.safeParse(body)

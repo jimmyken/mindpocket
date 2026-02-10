@@ -15,6 +15,8 @@ export async function fetchWithBrowser(url: string): Promise<string | null> {
       })
     } else {
       const chromium = (await import("@sparticuz/chromium-min")).default
+
+      console.log("Using chromium from @sparticuz/chromium-min:", await chromium.executablePath())
       chromium.setGraphicsMode = false
       browser = await puppeteer.launch({
         args: chromium.args,
