@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native"
+import { useMarkdown } from "react-native-marked"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ApiError, requestJson } from "@/lib/api-client"
 import { deleteBookmark } from "@/lib/bookmark-api"
@@ -132,7 +133,7 @@ export default function BookmarkDetailScreen() {
 
         {bookmark.description && <Text style={styles.description}>{bookmark.description}</Text>}
 
-        {bookmark.content && <Text style={styles.content}>{bookmark.content}</Text>}
+        {bookmark.content && <MarkdownContent content={bookmark.content} />}
       </ScrollView>
 
       <View style={styles.bottomBar}>
@@ -169,6 +170,17 @@ function TagList({ tags }: { tags: BookmarkDetail["tags"] }) {
         <View key={tag.id} style={styles.tag}>
           <Text style={styles.tagText}>{tag.name}</Text>
         </View>
+      ))}
+    </View>
+  )
+}
+
+function MarkdownContent({ content }: { content: string }) {
+  const elements = useMarkdown(content)
+  return (
+    <View style={{ marginTop: 16 }}>
+      {elements.map((el, i) => (
+        <Fragment key={`md-${i}`}>{el}</Fragment>
       ))}
     </View>
   )

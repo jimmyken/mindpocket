@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { HistoryDrawer } from "@/components/drawer/history-drawer"
 import { SearchInput } from "@/components/home/search-input"
 import { Toolbar } from "@/components/home/toolbar"
-import { TrendingCard } from "@/components/home/trending-card"
 import { ChatApiError, deleteChat, fetchHistory, type HistorySection } from "@/lib/chat-api"
 import { getGreeting } from "@/lib/utils"
 
@@ -127,9 +126,6 @@ export default function HomeScreen() {
           selectedModel={selectedModel}
           useKnowledgeBase={useKnowledgeBase}
         />
-
-        {/* Trending Topics */}
-        <TrendingCard />
       </ScrollView>
 
       {/* Drawer */}
@@ -160,13 +156,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
     paddingBottom: 20,
   },
   greeting: {
     alignItems: "center",
     paddingHorizontal: 16,
     paddingBottom: 24,
-    paddingTop: 64,
   },
   greetingTitle: {
     fontSize: 30,
