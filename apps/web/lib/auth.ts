@@ -17,6 +17,11 @@ export const auth = betterAuth({
     "mindpocket://",
     "exp://",
     "exp://**",
+    
+    // ✅ Vercel Production & Preview Deploy
+    "https://mindpocket-web-lake.vercel.app",
+    "https://mindpocket-ph9tbc5dk-jimmykens-projects.vercel.app",
+    "https://mindpocket-6jqg1bv2m-jimmykens-projects.vercel.app"
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -27,15 +32,6 @@ export const auth = betterAuth({
       // Send an email to the user with a link to reset their password
     },
   },
-  // socialProviders: {
-  //   google: {
-  //     clientId: process.env.GOOGLE_CLIENT_ID!,
-  //     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  //   },
-  //   github: {
-  //     clientId: process.env.GITHUB_CLIENT_ID!,
-  //     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-  //   },
-  // },
   plugins: [nextCookies(), bearer(), expo()],
 })
+
