@@ -17,11 +17,7 @@ export const auth = betterAuth({
     "mindpocket://",
     "exp://",
     "exp://**",
-    
-    // ✅ Vercel Production & Preview Deploy
-    "https://mindpocket-web-lake.vercel.app",
-    "https://mindpocket-ph9tbc5dk-jimmykens-projects.vercel.app",
-    "https://mindpocket-6jqg1bv2m-jimmykens-projects.vercel.app"
+    "https://*.vercel.app",  // All Vercel deployments (production + previews)
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
